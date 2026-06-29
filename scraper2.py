@@ -183,11 +183,11 @@ async def extract_detail(context, url: str) -> dict:
     try:
         await _goto_maps(page, url)
 
-        # Dismiss cookie/consent banner if it blocks the detail page
+        # Dismiss cookie/consent banner if it blocks the detail page (instant check)
         for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
             try:
                 btn = page.locator(sel).first
-                if await btn.is_visible(timeout=1500):
+                if await btn.count() > 0 and await btn.is_visible(timeout=100):
                     await btn.click()
                     await asyncio.sleep(0.5)
                     break
@@ -285,6 +285,9 @@ async def extract_detail(context, url: str) -> dict:
 async def _process_url(context, url, sem, website_filter,
                        max_leads, results, lock, progress_callback, counters):
     async with sem:
+        biz_name = "Skipped business"
+        has_website = False
+        accepted = False
         try:
             # Stop early if quota reached
             async with lock:
@@ -293,45 +296,50 @@ async def _process_url(context, url, sem, website_filter,
 
             biz = await extract_detail(context, url)
             
-            # Skip if invalid/empty detail page payload
-            if not biz or not biz.get("Name"):
+            if biz and biz.get("Name"):
+                biz_name = biz["Name"]
+                has_website = bool(biz["Website"].strip())
+                matched_filter = True
+                if website_filter == "with" and not has_website:
+                    matched_filter = False
+                elif website_filter == "without" and has_website:
+                    matched_filter = False
+
                 async with lock:
-                    counters["checked"] += 1
-                return
-
-            has_website = bool(biz["Website"].strip()) if biz["Name"] else False
-            matched_filter = bool(biz["Name"])
-            if website_filter == "with" and not has_website:
-                matched_filter = False
-            elif website_filter == "without" and has_website:
-                matched_filter = False
-
+                    accepted = matched_filter and len(results) < max_leads
+                    if accepted:
+                        results.append(biz)
+            
             async with lock:
-                accepted = matched_filter and len(results) < max_leads
-                if accepted:
-                    results.append(biz)
                 counters["checked"] += 1
                 checked = counters["checked"]
                 matched = len(results)
 
             if accepted:
                 _emit_progress(
-                    progress_callback, matched, max_leads, biz["Name"],
+                    progress_callback, matched, max_leads, biz_name,
                     stage="lead", checked=checked, raw_total=counters["total"],
                     has_website=has_website,
                 )
 
             _emit_progress(
                 progress_callback, matched, max_leads,
-                biz["Name"] or "Skipped business",
+                biz_name,
                 stage="checking", checked=checked, raw_total=counters["total"],
                 has_website=has_website, accepted=accepted,
             )
         except Exception as e:
             print(f"Error processing URL {url}: {e}")
-            # Ensure the check counters increment even on failures to prevent hanging
             async with lock:
                 counters["checked"] += 1
+                checked = counters["checked"]
+                matched = len(results)
+            _emit_progress(
+                progress_callback, matched, max_leads,
+                "Error loading page",
+                stage="checking", checked=checked, raw_total=counters["total"],
+                has_website=False, accepted=False,
+            )
 
 
 # ── Public API ───────────────────────────────────────────────────────────────
@@ -345,13 +353,12 @@ async def scrape_async(
 ) -> list[dict]:
 
     # Collect more raw URLs than needed to survive filter attrition.
-    # "No website" leads are usually much rarer, so overfetch more aggressively.
     if website_filter == "without":
-        fetch_count = max_leads * 12
+        fetch_count = max_leads * 6
     elif website_filter == "with":
-        fetch_count = max_leads * 4
+        fetch_count = max_leads * 2
     else:
-        fetch_count = max_leads + 10
+        fetch_count = max_leads
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
@@ -378,11 +385,11 @@ async def scrape_async(
         await _goto_maps(search_page, build_search_url(niche, location))
         await asyncio.sleep(2.5)
 
-        # Dismiss cookie / consent banner
+        # Dismiss cookie / consent banner (instant check)
         for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
             try:
                 btn = search_page.locator(sel).first
-                if await btn.is_visible(timeout=2000):
+                if await btn.count() > 0 and await btn.is_visible(timeout=100):
                     await btn.click()
                     await asyncio.sleep(0.8)
                     break
