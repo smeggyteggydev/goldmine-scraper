@@ -183,12 +183,29 @@ async def extract_detail(context, url: str) -> dict:
     try:
         await _goto_maps(page, url)
 
+        # Dismiss cookie/consent banner if it blocks the detail page
+        for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
+            try:
+                btn = page.locator(sel).first
+                if await btn.is_visible(timeout=1500):
+                    await btn.click()
+                    await asyncio.sleep(0.5)
+                    break
+            except Exception:
+                pass
+
         # Wait for the business name heading
         try:
             await page.locator(
                 'h1.DUwDvf, h1[class*="fontHeadlineLarge"]'
             ).first.wait_for(timeout=8000)
         except PWTimeout:
+            # Capture screenshot to debug if Google Map blocks or CAPTCHAs the server
+            try:
+                os.makedirs("debug_screenshots", exist_ok=True)
+                await page.screenshot(path=f"debug_screenshots/error_{int(time.time())}.png")
+            except Exception:
+                pass
             return data
 
         # ── Name ──────────────────────────────────────────────────────────
@@ -362,7 +379,7 @@ async def scrape_async(
         await asyncio.sleep(2.5)
 
         # Dismiss cookie / consent banner
-        for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]']:
+        for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
             try:
                 btn = search_page.locator(sel).first
                 if await btn.is_visible(timeout=2000):

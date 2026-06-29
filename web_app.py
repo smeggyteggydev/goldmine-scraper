@@ -473,7 +473,21 @@ def email_stream():
                 if msg["t"] in ("done", "error"): break
             except queue.Empty:
                 yield f"data: {json.dumps({'t':'ping'})}\n\n"
-    return Response(gen(), mimetype="text/event-stream")
+@app.route("/api/debug/screenshots")
+def debug_screenshots():
+    sdir = os.path.join(BASE_DIR, "debug_screenshots")
+    if not os.path.exists(sdir):
+        return jsonify([])
+    files = sorted([f for f in os.listdir(sdir) if f.endswith(".png")], reverse=True)
+    return jsonify(files)
+
+@app.route("/api/debug/screenshots/<filename>")
+def get_debug_screenshot(filename):
+    sdir = os.path.join(BASE_DIR, "debug_screenshots")
+    path = os.path.join(sdir, filename)
+    if not os.path.exists(path):
+        return "Not Found", 404
+    return send_file(path, mimetype="image/png")
 
 # ── Main Entry ────────────────────────────────────────────────────────────────
 
