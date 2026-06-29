@@ -260,12 +260,12 @@ async def extract_detail_on_page(page, url: str) -> dict:
             'button[aria-label*="ddress"]'
         ).first
         if await addr_btn.count() > 0:
-            data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
+            data["Address"] = _clean_text(await addr_btn.inner_text())
         else:
             # Fallback: look for copy-address tooltip
             addr_btn = page.locator('[data-tooltip*="ddress"]').first
             if await addr_btn.count() > 0:
-                data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
+                data["Address"] = _clean_text(await addr_btn.inner_text())
     except Exception:
         pass
 
