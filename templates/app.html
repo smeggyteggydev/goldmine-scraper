@@ -381,6 +381,7 @@
                 const response = await fetch(getApiUrl('/api/scrape'), {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
                     body: JSON.stringify({
                         niche: document.getElementById('niche').value,
                         location: document.getElementById('location').value,
@@ -397,7 +398,7 @@
                     return;
                 }
 
-                const es = new EventSource(getApiUrl('/api/scrape/stream'));
+                const es = new EventSource(getApiUrl('/api/scrape/stream'), { withCredentials: true });
                 es.onmessage = (e) => {
                     const d = JSON.parse(e.data);
                     if (d.t === 'progress') {
@@ -443,8 +444,8 @@
             document.getElementById('email-progress').style.opacity = '1';
             document.getElementById('email-success').style.display = 'none';
 
-            fetch(getApiUrl('/api/emails/find'), {method: 'POST'});
-            const es = new EventSource(getApiUrl('/api/emails/stream'));
+            fetch(getApiUrl('/api/emails/find'), {method: 'POST', credentials: 'include'});
+            const es = new EventSource(getApiUrl('/api/emails/stream'), { withCredentials: true });
             es.onmessage = (e) => {
                 const d = JSON.parse(e.data);
                 if (d.t === 'checking') document.getElementById('email-msg').textContent = `Checking domain: ${d.name}`;
@@ -466,7 +467,7 @@
         }
 
         async function loadResults() {
-            const res = await fetch(getApiUrl('/api/results'));
+            const res = await fetch(getApiUrl('/api/results'), { credentials: 'include' });
             const data = await res.json();
             const body = document.getElementById('results-body');
             
@@ -497,7 +498,7 @@
         }
 
         async function loadHistory() {
-            const res = await fetch(getApiUrl('/api/history'));
+            const res = await fetch(getApiUrl('/api/history'), { credentials: 'include' });
             const data = await res.json();
             const list = document.getElementById('history-list');
             if (!data.length) {
@@ -521,7 +522,7 @@
 
         async function updateSession() {
             try {
-                const res = await fetch(getApiUrl('/api/session'));
+                const res = await fetch(getApiUrl('/api/session'), { credentials: 'include' });
                 const data = await res.json();
                 
                 userTier = data.tier;

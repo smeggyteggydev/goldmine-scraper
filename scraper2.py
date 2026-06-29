@@ -33,7 +33,7 @@ from playwright.async_api import async_playwright, TimeoutError as PWTimeout
 # ── Tuning ──────────────────────────────────────────────────────────────────
 CONCURRENT_PAGES = 6      # parallel detail pages
 SCROLL_PAUSE     = 0.7    # seconds between result-panel scrolls
-NAV_TIMEOUT      = 45000  # ms for page.goto
+NAV_TIMEOUT      = 20000  # ms for page.goto (20 seconds)
 ELEM_TIMEOUT     = 3000   # ms for individual element waits
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -121,6 +121,8 @@ async def collect_urls(page, target: int, progress_callback=None) -> list[str]:
     )
 
     last_reported = -1
+    no_change_count = 0
+    prev_len = 0
     for _ in range(max_scrolls):
         cards = await page.locator('a[href*="/maps/place/"]').all()
         for card in cards:
@@ -144,6 +146,17 @@ async def collect_urls(page, target: int, progress_callback=None) -> list[str]:
             break
         if await page.locator('span.HlvSq').count() > 0:
             break
+            
+        # Break if we've reached the end (no new URLs found after 5 scrolls)
+        if len(urls) == prev_len:
+            no_change_count += 1
+        else:
+            no_change_count = 0
+        prev_len = len(urls)
+        
+        if no_change_count >= 5:
+            break
+
         await page.evaluate(
             'const p = document.querySelector(\'div[role="feed"]\');'
             'if (p) p.scrollBy(0, 1200);'
@@ -255,40 +268,53 @@ async def extract_detail(context, url: str) -> dict:
 async def _process_url(context, url, sem, website_filter,
                        max_leads, results, lock, progress_callback, counters):
     async with sem:
-        # Stop early if quota reached
-        async with lock:
-            if len(results) >= max_leads:
+        try:
+            # Stop early if quota reached
+            async with lock:
+                if len(results) >= max_leads:
+                    return
+
+            biz = await extract_detail(context, url)
+            
+            # Skip if invalid/empty detail page payload
+            if not biz or not biz.get("Name"):
+                async with lock:
+                    counters["checked"] += 1
                 return
 
-        biz = await extract_detail(context, url)
-        has_website = bool(biz["Website"].strip()) if biz["Name"] else False
-        matched_filter = bool(biz["Name"])
-        if website_filter == "with" and not has_website:
-            matched_filter = False
-        elif website_filter == "without" and has_website:
-            matched_filter = False
+            has_website = bool(biz["Website"].strip()) if biz["Name"] else False
+            matched_filter = bool(biz["Name"])
+            if website_filter == "with" and not has_website:
+                matched_filter = False
+            elif website_filter == "without" and has_website:
+                matched_filter = False
 
-        async with lock:
-            accepted = matched_filter and len(results) < max_leads
+            async with lock:
+                accepted = matched_filter and len(results) < max_leads
+                if accepted:
+                    results.append(biz)
+                counters["checked"] += 1
+                checked = counters["checked"]
+                matched = len(results)
+
             if accepted:
-                results.append(biz)
-            counters["checked"] += 1
-            checked = counters["checked"]
-            matched = len(results)
+                _emit_progress(
+                    progress_callback, matched, max_leads, biz["Name"],
+                    stage="lead", checked=checked, raw_total=counters["total"],
+                    has_website=has_website,
+                )
 
-        if accepted:
             _emit_progress(
-                progress_callback, matched, max_leads, biz["Name"],
-                stage="lead", checked=checked, raw_total=counters["total"],
-                has_website=has_website,
+                progress_callback, matched, max_leads,
+                biz["Name"] or "Skipped business",
+                stage="checking", checked=checked, raw_total=counters["total"],
+                has_website=has_website, accepted=accepted,
             )
-
-        _emit_progress(
-            progress_callback, matched, max_leads,
-            biz["Name"] or "Skipped business",
-            stage="checking", checked=checked, raw_total=counters["total"],
-            has_website=has_website, accepted=accepted,
-        )
+        except Exception as e:
+            print(f"Error processing URL {url}: {e}")
+            # Ensure the check counters increment even on failures to prevent hanging
+            async with lock:
+                counters["checked"] += 1
 
 
 # ── Public API ───────────────────────────────────────────────────────────────

@@ -842,6 +842,7 @@
                 const res = await fetch(getApiUrl('/api/login'), {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
                     body: JSON.stringify({ username: user, password: pass })
                 });
                 const data = await res.json();
@@ -861,7 +862,10 @@
 
         async function tryGuestMode() {
             try {
-                const res = await fetch(getApiUrl('/api/guest'), { method: 'POST' });
+                const res = await fetch(getApiUrl('/api/guest'), { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
                 const data = await res.json();
                 if (data.valid) {
                     const isNetlify = window.location.hostname.includes('netlify') || !window.location.port;
