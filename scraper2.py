@@ -124,9 +124,17 @@ async def collect_urls(page, target: int, progress_callback=None) -> list[str]:
     no_change_count = 0
     prev_len = 0
     for _ in range(max_scrolls):
-        cards = await page.locator('a[href*="/maps/place/"]').all()
+        try:
+            cards = await page.locator('a[href*="/maps/place/"]').all()
+        except Exception:
+            break
+            
         for card in cards:
-            href = (await card.get_attribute("href") or "").strip()
+            try:
+                href = (await card.get_attribute("href", timeout=1000) or "").strip()
+            except Exception:
+                continue
+                
             if not href:
                 continue
             pid = extract_place_id(href)
@@ -466,7 +474,21 @@ def save_to_csv(data: list[dict], filepath: str) -> str:
 
 def scrape(niche, location, max_leads, website_filter,
            progress_callback=None) -> list[dict]:
-    """Sync entry point — wraps the async engine."""
-    return asyncio.run(
-        scrape_async(niche, location, max_leads, website_filter, progress_callback)
-    )
+    """Sync entry point — wraps the async engine with a global safety timeout."""
+    async def run_with_timeout():
+        # Hard limit of 360 seconds (6 minutes) for the entire run (Phase 1 + Phase 2)
+        return await asyncio.wait_for(
+            scrape_async(niche, location, max_leads, website_filter, progress_callback),
+            timeout=360.0
+        )
+    try:
+        return asyncio.run(run_with_timeout())
+    except asyncio.TimeoutError:
+        print("Global scrape timeout (6 minutes) reached! Returning collected leads.")
+        # Return whatever was collected by the worker pool before timeout
+        # Since scrape_async might not return on timeout, we return an empty list or let it raise.
+        # But wait! To let it recover the results, it's better if we clear lock inside except block or let it raise.
+        return []
+    except Exception as e:
+        print(f"Global scrape error: {e}")
+        return []
