@@ -31,7 +31,7 @@ os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", PLAYWRIGHT_BROWSERS_DIR)
 from playwright.async_api import async_playwright, TimeoutError as PWTimeout
 
 # ── Tuning ──────────────────────────────────────────────────────────────────
-CONCURRENT_PAGES = 6      # parallel detail pages
+CONCURRENT_PAGES = 2      # parallel detail pages (lowered to 2 for Render Free Tier RAM limits)
 SCROLL_PAUSE     = 0.7    # seconds between result-panel scrolls
 NAV_TIMEOUT      = 20000  # ms for page.goto (20 seconds)
 ELEM_TIMEOUT     = 3000   # ms for individual element waits
@@ -337,7 +337,16 @@ async def scrape_async(
         fetch_count = max_leads + 10
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        browser = await pw.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-gpu",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--js-flags=--max-old-space-size=256"
+            ]
+        )
 
         # ── Shared browser context (one jar of cookies, saves memory) ─────
         context = await browser.new_context(
