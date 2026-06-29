@@ -192,7 +192,7 @@
         </div>
         
         <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--card-border);">
-            <div class="nav-item" style="color: var(--red);" onclick="window.location.href='/api/logout'">
+            <div class="nav-item" style="color: var(--red);" onclick="triggerLogout()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
                 Logout Account
             </div>
@@ -562,6 +562,16 @@
             } catch (err) {
                 console.error("Session update failed. Local server offline or CORS issue.", err);
             }
+        }
+
+        async function triggerLogout() {
+            try {
+                await fetch(getApiUrl('/api/logout'), { credentials: 'include' });
+            } catch (e) {
+                console.error("Logout request failed", e);
+            }
+            const isNetlify = window.location.hostname.includes('netlify') || !window.location.port;
+            window.location.href = isNetlify ? '/index.html' : '/';
         }
 
         window.onload = async () => {

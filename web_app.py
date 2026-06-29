@@ -232,6 +232,9 @@ def guest_login():
 @app.route("/api/logout")
 def logout():
     session.clear()
+    # Check if request accepts JSON or is AJAX
+    if request.headers.get("Content-Type") == "application/json" or request.accept_mimetypes.accept_json:
+        return jsonify({"success": True})
     return redirect(url_for("index"))
 
 @app.route("/api/session")
