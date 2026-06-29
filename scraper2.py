@@ -86,9 +86,9 @@ def _clean_text(value: str) -> str:
 
 async def _goto_maps(page, url: str):
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT)
-    except PWTimeout:
-        await page.goto(url, wait_until="commit", timeout=15000)
+        await page.goto(url, wait_until="commit", timeout=12000)
+    except Exception:
+        pass
 
 
 def _emit_progress(progress_callback, current: int, total: int, name: str, **info):
@@ -203,7 +203,7 @@ async def extract_detail(context, url: str) -> dict:
             # Capture screenshot to debug if Google Map blocks or CAPTCHAs the server
             try:
                 os.makedirs("debug_screenshots", exist_ok=True)
-                await page.screenshot(path=f"debug_screenshots/error_{int(time.time())}.png")
+                await page.screenshot(path=f"debug_screenshots/error_{int(time.time())}.png", timeout=3000)
             except Exception:
                 pass
             return data
@@ -240,39 +240,38 @@ async def extract_detail(context, url: str) -> dict:
         except Exception:
             pass
 
-        # ── Phone  (via tel: href — language-independent) ─────────────────
+        # ── Phone  (via tel: href — language-independent & instant) ──────
         try:
             tel_link = page.locator('a[href^="tel:"]').first
-            await tel_link.wait_for(timeout=ELEM_TIMEOUT)
-            raw = (await tel_link.get_attribute("href") or "").replace("tel:", "").strip()
-            data["Phone"] = raw
+            if await tel_link.count() > 0:
+                raw = (await tel_link.get_attribute("href") or "").replace("tel:", "").strip()
+                data["Phone"] = raw
         except Exception:
             pass
 
-        # ── Website  (data-item-id="authority" is reliable) ───────────────
+        # ── Website  (data-item-id="authority" — instant) ─────────────────
         try:
             wl = page.locator('a[data-item-id="authority"]').first
-            await wl.wait_for(timeout=ELEM_TIMEOUT)
-            data["Website"] = (await wl.get_attribute("href") or "").strip()
+            if await wl.count() > 0:
+                data["Website"] = (await wl.get_attribute("href") or "").strip()
         except Exception:
             pass
 
-        # ── Address  (button with data-item-id containing "address") ──────
+        # ── Address  (button with data-item-id address — instant) ─────────
         try:
             addr_btn = page.locator(
                 'button[data-item-id*="address"], '
-                'button[aria-label*="ddress"]'       # covers "Address", "Adres", etc.
+                'button[aria-label*="ddress"]'
             ).first
-            await addr_btn.wait_for(timeout=ELEM_TIMEOUT)
-            data["Address"] = _clean_text(await addr_btn.inner_text(timeout=ELEM_TIMEOUT))
-        except Exception:
-            # Fallback: look for copy-address tooltip
-            try:
+            if await addr_btn.count() > 0:
+                data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
+            else:
+                # Fallback: look for copy-address tooltip
                 addr_btn = page.locator('[data-tooltip*="ddress"]').first
-                await addr_btn.wait_for(timeout=1500)
-                data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1500))
-            except Exception:
-                pass
+                if await addr_btn.count() > 0:
+                    data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
+        except Exception:
+            pass
 
     finally:
         await page.close()   # ← always close; no state survives
