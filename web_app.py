@@ -464,7 +464,8 @@ def email_stream():
 # ── Main Entry ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    port = 8888
+    import os
+    port = int(os.environ.get("PORT", 8888))
     # Parse port parameter if provided
     for i, arg in enumerate(sys.argv):
         if arg == "--port" and i + 1 < len(sys.argv):
