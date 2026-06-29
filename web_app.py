@@ -143,6 +143,7 @@ job = {
     "csv_name":        "",
     "scrape_queue":    queue.Queue(),
     "email_queue":     queue.Queue(),
+    "scrape_thread":   None,
 }
 
 def _clear_q(q: queue.Queue):
@@ -290,7 +291,11 @@ def add_header(response):
 
 @app.route("/api/scrape", methods=["POST"])
 def start_scrape():
-    if job["scrape_running"]: return jsonify({"error": "Busy"}), 400
+    active_thread = job.get("scrape_thread")
+    if active_thread and active_thread.is_alive():
+        return jsonify({"error": "Busy"}), 400
+    
+    job["scrape_running"] = False
     data = request.json or {}
     niche, location = data.get("niche", ""), data.get("location", "")
     if not niche or not location: return jsonify({"error": "Fields required"}), 400
@@ -382,7 +387,9 @@ def start_scrape():
         finally: 
             job["scrape_running"] = False
 
-    threading.Thread(target=run, daemon=True).start()
+    t = threading.Thread(target=run, daemon=True)
+    job["scrape_thread"] = t
+    t.start()
     return jsonify({"status": "started"})
 
 # ── Email Enrichment ────────────────────────────────────────────────────────
