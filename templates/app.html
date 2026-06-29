@@ -315,8 +315,8 @@
     </div>
 
     <script>
-        // Silent API base URL routing (relative on local app, fallback to 127.0.0.1:5000 on static hosting)
-        const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : 'http://127.0.0.1:5000';
+        // Silent API base URL routing (relative on local app, fallback to Render backend on static hosting)
+        const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : 'https://goldmine-scraper.onrender.com';
 
         function getApiUrl(endpoint) {
             if (API_BASE && !endpoint.startsWith('http')) {
