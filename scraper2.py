@@ -86,7 +86,7 @@ def _clean_text(value: str) -> str:
 
 async def _goto_maps(page, url: str):
     try:
-        await page.goto(url, wait_until="commit", timeout=12000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
     except Exception:
         pass
 
@@ -189,7 +189,10 @@ async def extract_detail(context, url: str) -> dict:
                 btn = page.locator(sel).first
                 if await btn.count() > 0 and await btn.is_visible(timeout=100):
                     await btn.click()
-                    await asyncio.sleep(0.5)
+                    try:
+                        await page.wait_for_navigation(wait_until="domcontentloaded", timeout=4000)
+                    except Exception:
+                        await asyncio.sleep(0.5)
                     break
             except Exception:
                 pass
@@ -390,7 +393,10 @@ async def scrape_async(
                 btn = search_page.locator(sel).first
                 if await btn.count() > 0 and await btn.is_visible(timeout=100):
                     await btn.click()
-                    await asyncio.sleep(0.8)
+                    try:
+                        await search_page.wait_for_navigation(wait_until="domcontentloaded", timeout=4000)
+                    except Exception:
+                        await asyncio.sleep(0.8)
                     break
             except Exception:
                 pass
