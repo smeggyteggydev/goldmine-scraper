@@ -322,6 +322,15 @@ def start_scrape():
             def on_progress(current, max_leads, name, info=None):
                 info = info or {}
                 stage = info.get("stage", "lead")
+                
+                # Append accepted business details in real time!
+                if stage == "lead" and "biz" in info:
+                    biz = dict(info["biz"])
+                    biz["Email"] = "" # ensure Email field is present
+                    # Prevent duplicate appends in live view
+                    if not any(b["Name"] == biz["Name"] and b["Address"] == biz["Address"] for b in job["results"]):
+                        job["results"].append(biz)
+
                 if stage == "collect":
                     raw = info.get("raw", 0)
                     raw_total = max(info.get("raw_total", max_leads), 1)

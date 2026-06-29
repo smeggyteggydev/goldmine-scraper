@@ -168,180 +168,179 @@ async def collect_urls(page, target: int, progress_callback=None) -> list[str]:
 
 # ── Phase 2: extract details from a FRESH page ──────────────────────────────
 
-async def extract_detail(context, url: str) -> dict:
-    """
-    Open a brand-new page, navigate to the business URL, scrape, then close.
-    A fresh page guarantees zero state bleed between businesses.
-    """
+async def extract_detail_on_page(page, url: str) -> dict:
     data = {
         "Name": "", "Category": "", "Address": "",
         "Phone": "", "Website": "", "Rating": "", "Reviews": "",
         "Source": "Google Maps",
     }
+    await _goto_maps(page, url)
 
-    page = await context.new_page()
-    try:
-        await _goto_maps(page, url)
-
-        # Dismiss cookie/consent banner if it blocks the detail page (instant check)
-        for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
-            try:
-                btn = page.locator(sel).first
-                if await btn.count() > 0 and await btn.is_visible(timeout=100):
-                    await btn.click()
-                    try:
-                        await page.wait_for_navigation(wait_until="domcontentloaded", timeout=4000)
-                    except Exception:
-                        await asyncio.sleep(0.5)
-                    break
-            except Exception:
-                pass
-
-        # Wait for the business name heading
+    # Dismiss cookie/consent banner if it blocks the detail page (instant check)
+    for sel in ['button[aria-label*="Accept"]', 'form button[type="submit"]', 'button[aria-label*="Agree"]', 'button[aria-label*="consent"]']:
         try:
-            await page.locator(
-                'h1.DUwDvf, h1[class*="fontHeadlineLarge"]'
-            ).first.wait_for(timeout=8000)
-        except PWTimeout:
-            # Capture screenshot to debug if Google Map blocks or CAPTCHAs the server
-            try:
-                os.makedirs("debug_screenshots", exist_ok=True)
-                await page.screenshot(path=f"debug_screenshots/error_{int(time.time())}.png", timeout=3000)
-            except Exception:
-                pass
-            return data
-
-        # ── Name ──────────────────────────────────────────────────────────
-        data["Name"] = await _text(
-            page.locator('h1.DUwDvf, h1[class*="fontHeadlineLarge"]')
-        )
-
-        # ── Category ──────────────────────────────────────────────────────
-        for sel in [
-            'button[jsaction*="category"]',
-            'span[jsan*="t-category-text"]',
-            'div.skqShb button',
-        ]:
-            v = await _text(page.locator(sel))
-            if v:
-                data["Category"] = v
+            btn = page.locator(sel).first
+            if await btn.count() > 0 and await btn.is_visible(timeout=100):
+                await btn.click()
+                try:
+                    await page.wait_for_navigation(wait_until="domcontentloaded", timeout=4000)
+                except Exception:
+                    await asyncio.sleep(0.5)
                 break
+        except Exception:
+            pass
 
-        # ── Rating ────────────────────────────────────────────────────────
-        data["Rating"] = await _text(
-            page.locator('div.F7nice span[aria-hidden="true"]')
+    # Wait for the business name heading
+    try:
+        await page.locator(
+            'h1.DUwDvf, h1[class*="fontHeadlineLarge"]'
+        ).first.wait_for(timeout=8000)
+    except PWTimeout:
+        # Capture screenshot to debug if Google Map blocks or CAPTCHAs the server
+        try:
+            os.makedirs("debug_screenshots", exist_ok=True)
+            await page.screenshot(path=f"debug_screenshots/error_{int(time.time())}.png", timeout=3000)
+        except Exception:
+            pass
+        return data
+
+    # ── Name ──────────────────────────────────────────────────────────
+    data["Name"] = await _text(
+        page.locator('h1.DUwDvf, h1[class*="fontHeadlineLarge"]')
+    )
+
+    # ── Category ──────────────────────────────────────────────────────
+    for sel in [
+        'button[jsaction*="category"]',
+        'span[jsan*="t-category-text"]',
+        'div.skqShb button',
+    ]:
+        v = await _text(page.locator(sel))
+        if v:
+            data["Category"] = v
+            break
+
+    # ── Rating ────────────────────────────────────────────────────────
+    data["Rating"] = await _text(
+        page.locator('div.F7nice span[aria-hidden="true"]')
+    )
+
+    # ── Reviews ───────────────────────────────────────────────────────
+    try:
+        aria = await _attr(
+            page.locator('div.F7nice span[aria-label]'), "aria-label"
         )
+        nums = re.findall(r'\d[\d,]*', aria)
+        if nums:
+            data["Reviews"] = nums[0].replace(",", "")
+    except Exception:
+        pass
 
-        # ── Reviews ───────────────────────────────────────────────────────
-        try:
-            aria = await _attr(
-                page.locator('div.F7nice span[aria-label]'), "aria-label"
-            )
-            nums = re.findall(r'\d[\d,]*', aria)
-            if nums:
-                data["Reviews"] = nums[0].replace(",", "")
-        except Exception:
-            pass
+    # ── Phone  (via tel: href — language-independent & instant) ──────
+    try:
+        tel_link = page.locator('a[href^="tel:"]').first
+        if await tel_link.count() > 0:
+            raw = (await tel_link.get_attribute("href") or "").replace("tel:", "").strip()
+            data["Phone"] = raw
+    except Exception:
+        pass
 
-        # ── Phone  (via tel: href — language-independent & instant) ──────
-        try:
-            tel_link = page.locator('a[href^="tel:"]').first
-            if await tel_link.count() > 0:
-                raw = (await tel_link.get_attribute("href") or "").replace("tel:", "").strip()
-                data["Phone"] = raw
-        except Exception:
-            pass
+    # ── Website  (data-item-id="authority" — instant) ─────────────────
+    try:
+        wl = page.locator('a[data-item-id="authority"]').first
+        if await wl.count() > 0:
+            data["Website"] = (await wl.get_attribute("href") or "").strip()
+    except Exception:
+        pass
 
-        # ── Website  (data-item-id="authority" — instant) ─────────────────
-        try:
-            wl = page.locator('a[data-item-id="authority"]').first
-            if await wl.count() > 0:
-                data["Website"] = (await wl.get_attribute("href") or "").strip()
-        except Exception:
-            pass
-
-        # ── Address  (button with data-item-id address — instant) ─────────
-        try:
-            addr_btn = page.locator(
-                'button[data-item-id*="address"], '
-                'button[aria-label*="ddress"]'
-            ).first
+    # ── Address  (button with data-item-id address — instant) ─────────
+    try:
+        addr_btn = page.locator(
+            'button[data-item-id*="address"], '
+            'button[aria-label*="ddress"]'
+        ).first
+        if await addr_btn.count() > 0:
+            data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
+        else:
+            # Fallback: look for copy-address tooltip
+            addr_btn = page.locator('[data-tooltip*="ddress"]').first
             if await addr_btn.count() > 0:
                 data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
-            else:
-                # Fallback: look for copy-address tooltip
-                addr_btn = page.locator('[data-tooltip*="ddress"]').first
-                if await addr_btn.count() > 0:
-                    data["Address"] = _clean_text(await addr_btn.inner_text(timeout=1000))
-        except Exception:
-            pass
-
-    finally:
-        await page.close()   # ← always close; no state survives
+    except Exception:
+        pass
 
     return data
 
 
-# ── Concurrency wrapper ──────────────────────────────────────────────────────
+# ── Concurrency worker pool ─────────────────────────────────────────────────
 
-async def _process_url(context, url, sem, website_filter,
-                       max_leads, results, lock, progress_callback, counters):
-    async with sem:
-        biz_name = "Skipped business"
-        has_website = False
-        accepted = False
-        try:
-            # Stop early if quota reached
+async def worker(worker_id, url_queue, context, website_filter, max_leads, results, lock, progress_callback, counters):
+    page = await context.new_page()
+    try:
+        while True:
+            try:
+                url = url_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+
             async with lock:
                 if len(results) >= max_leads:
-                    return
+                    break
 
-            biz = await extract_detail(context, url)
-            
-            if biz and biz.get("Name"):
-                biz_name = biz["Name"]
-                has_website = bool(biz["Website"].strip())
-                matched_filter = True
-                if website_filter == "with" and not has_website:
-                    matched_filter = False
-                elif website_filter == "without" and has_website:
-                    matched_filter = False
+            biz_name = "Skipped business"
+            has_website = False
+            accepted = False
+            try:
+                biz = await extract_detail_on_page(page, url)
+                if biz and biz.get("Name"):
+                    biz_name = biz["Name"]
+                    has_website = bool(biz["Website"].strip())
+                    matched_filter = True
+                    if website_filter == "with" and not has_website:
+                        matched_filter = False
+                    elif website_filter == "without" and has_website:
+                        matched_filter = False
 
+                    async with lock:
+                        accepted = matched_filter and len(results) < max_leads
+                        if accepted:
+                            results.append(biz)
+                
                 async with lock:
-                    accepted = matched_filter and len(results) < max_leads
-                    if accepted:
-                        results.append(biz)
-            
-            async with lock:
-                counters["checked"] += 1
-                checked = counters["checked"]
-                matched = len(results)
+                    counters["checked"] += 1
+                    checked = counters["checked"]
+                    matched = len(results)
 
-            if accepted:
+                if accepted:
+                    _emit_progress(
+                        progress_callback, matched, max_leads, biz_name,
+                        stage="lead", checked=checked, raw_total=counters["total"],
+                        has_website=has_website, biz=biz
+                    )
+
                 _emit_progress(
-                    progress_callback, matched, max_leads, biz_name,
-                    stage="lead", checked=checked, raw_total=counters["total"],
-                    has_website=has_website,
+                    progress_callback, matched, max_leads,
+                    biz_name,
+                    stage="checking", checked=checked, raw_total=counters["total"],
+                    has_website=has_website, accepted=accepted,
                 )
-
-            _emit_progress(
-                progress_callback, matched, max_leads,
-                biz_name,
-                stage="checking", checked=checked, raw_total=counters["total"],
-                has_website=has_website, accepted=accepted,
-            )
-        except Exception as e:
-            print(f"Error processing URL {url}: {e}")
-            async with lock:
-                counters["checked"] += 1
-                checked = counters["checked"]
-                matched = len(results)
-            _emit_progress(
-                progress_callback, matched, max_leads,
-                "Error loading page",
-                stage="checking", checked=checked, raw_total=counters["total"],
-                has_website=False, accepted=False,
-            )
+            except Exception as e:
+                print(f"Worker {worker_id} error processing URL {url}: {e}")
+                async with lock:
+                    counters["checked"] += 1
+                    checked = counters["checked"]
+                    matched = len(results)
+                _emit_progress(
+                    progress_callback, matched, max_leads,
+                    "Error loading page",
+                    stage="checking", checked=checked, raw_total=counters["total"],
+                    has_website=False, accepted=False,
+                )
+    finally:
+        try:
+            await page.close()
+        except Exception:
+            pass
 
 
 # ── Public API ───────────────────────────────────────────────────────────────
@@ -354,13 +353,13 @@ async def scrape_async(
     progress_callback=None,
 ) -> list[dict]:
 
-    # Collect more raw URLs than needed to survive filter attrition.
+    # Collect more raw URLs than needed to survive filter attrition and capture full target.
     if website_filter == "without":
-        fetch_count = max_leads * 6
+        fetch_count = max_leads * 6 + 15
     elif website_filter == "with":
-        fetch_count = max_leads * 2
+        fetch_count = max_leads * 2 + 15
     else:
-        fetch_count = max_leads
+        fetch_count = max_leads + 15
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(
@@ -416,20 +415,26 @@ async def scrape_async(
             await browser.close()
             return []
 
-        # ── Phase 2: parallel detail fetch ────────────────────────────────
+        # ── Phase 2: parallel detail fetch using Reusable Worker Pool ─────
         results: list[dict] = []
         lock = asyncio.Lock()
-        sem  = asyncio.Semaphore(CONCURRENT_PAGES)
         counters = {"checked": 0, "total": len(urls)}
 
-        tasks = [
-            _process_url(context, url, sem, website_filter,
-                         max_leads, results, lock, progress_callback, counters)
-            for url in urls
+        # Populate queue
+        url_queue = asyncio.Queue()
+        for url in urls:
+            url_queue.put_nowait(url)
+
+        # Spawn workers
+        workers = [
+            worker(i, url_queue, context, website_filter, max_leads,
+                   results, lock, progress_callback, counters)
+            for i in range(CONCURRENT_PAGES)
         ]
+
         try:
-            # Wrap in wait_for to prevent infinite hanging at 100%
-            await asyncio.wait_for(asyncio.gather(*tasks), timeout=300) 
+            # Wrap in wait_for to prevent infinite hanging
+            await asyncio.wait_for(asyncio.gather(*workers), timeout=300)
         except asyncio.TimeoutError:
             pass # Return whatever we got so far
 
