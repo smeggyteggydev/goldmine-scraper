@@ -1,0 +1,11 @@
+{
+  "name": "goldmine-saas",
+  "version": "1.0.0",
+  "description": "Goldmine SaaS Static Frontend Build for Netlify",
+  "main": "index.js",
+  "scripts": {
+    "build": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.copyFileSync('templates/index.html', 'dist/index.html'); fs.copyFileSync('templates/app.html', 'dist/dashboard.html'); console.log('Static frontend build completed successfully in dist/ (index.html, dashboard.html)');\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CallForge Simple Dialer</title>
+    <link rel="stylesheet" href="styles.css?v=simple4" />
+  </head>
+  <body>
+    <main class="app">
+      <aside class="leads">
+        <header class="brand">
+          <div>
+            <h1>CallForge</h1>
+            <p>Simple 8x8 calling desk</p>
+          </div>
+          <button id="exportBtn" type="button">Export</button>
+        </header>
+
+        <label class="import-box" for="csvInput">
+          <strong>Import leads CSV</strong>
+          <span>Business name and phone number are enough.</span>
+        </label>
+        <input id="csvInput" type="file" accept=".csv,text/csv" />
+
+        <div class="lead-count">
+          <strong id="leadCount">0 leads</strong>
+          <span id="bridgeStatus">8x8 bridge: not connected</span>
+        </div>
+
+        <div id="leadList" class="lead-list"></div>
+      </aside>
+
+      <section class="caller">
+        <section class="current-lead">
+          <p class="eyebrow">Calling now</p>
+          <h2 id="leadName">Import your leads</h2>
+          <p id="leadPhone" class="phone">No number selected</p>
+
+          <div class="call-actions">
+            <button id="callBtn" class="call" type="button" disabled>Call in 8x8</button>
+            <button id="endBtn" class="end" type="button" disabled>End call</button>
+          </div>
+        </section>
+
+        <section class="script-box">
+          <div class="section-head">
+            <h3>Your live script</h3>
+            <button id="clearScriptBtn" type="button">Clear</button>
+          </div>
+          <textarea id="liveScript" placeholder="Paste or type your cold calling script here before you start calling. This stays saved in this browser."></textarea>
+        </section>
+
+        <section class="outcomes">
+          <button data-outcome="Interested" type="button">Interested</button>
+          <button data-outcome="Callback" type="button">Callback</button>
+          <button data-outcome="No answer" type="button">No answer</button>
+          <button data-outcome="Voicemail" type="button">Voicemail</button>
+          <button data-outcome="Not interested" type="button">Not interested</button>
+          <button data-outcome="Do not call" class="danger" type="button">Do not call</button>
+        </section>
+
+        <label class="notes-wrap">
+          Notes for this lead
+          <textarea id="notesInput" placeholder="Quick notes: asked for callback, email, objection, decision maker..."></textarea>
+        </label>
+
+        <div class="bottom-actions">
+          <button id="prevBtn" type="button">Previous</button>
+          <button id="saveNextBtn" class="primary" type="button" disabled>Save & next</button>
+          <button id="nextBtn" type="button">Skip</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js?v=simple4"></script>
+  </body>
+</html>

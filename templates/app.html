@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goldmine Dashboard | Enterprise Business Lead Scraper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0D14;
+            --sidebar-bg: #101420;
+            --card: #161B2B;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-gold: #F5C754;
+            --accent-blue: #4F8EF7;
+            --white: #ffffff;
+            --dim: #94A3B8;
+            --green: #10B981;
+            --red: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg); color: var(--white); font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden; }
+
+        /* Sidebar Navigation */
+        .sidebar { width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--card-border); padding: 40px 24px; display: flex; flex-direction: column; gap: 40px; transition: 0.3s; }
+        .logo { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -1px; color: var(--white); display: flex; align-items: center; gap: 12px; }
+        .logo span { color: var(--accent-blue); }
+        .nav-menu { display: flex; flex-direction: column; gap: 10px; }
+        .nav-item { padding: 14px 16px; border-radius: 12px; color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.06); color: var(--white); }
+        .nav-item.active { background: rgba(79, 142, 247, 0.1); color: var(--accent-blue); border: 1px solid rgba(79, 142, 247, 0.15); }
+
+        /* Main Workspace Panel */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        header { height: 90px; padding: 0 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); background: var(--sidebar-bg); }
+        header h2 { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; }
+        
+        .user-info { display: flex; align-items: center; gap: 16px; }
+        .tier-tag { background: var(--accent-gold); color: #000; font-size: 10px; font-weight: 800; padding: 6px 14px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; }
+        .tier-tag.free { background: rgba(255,255,255,0.08); color: var(--dim); border: 1px solid var(--card-border); }
+        
+        /* Content Workspace */
+        .content { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 32px; }
+        .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 24px; padding: 36px; position: relative; }
+        
+        /* Premium Lock Screen Overlays */
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 13, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            z-index: 5;
+            border: 1px solid rgba(245, 199, 84, 0.15);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .locked-title { font-family: 'Outfit'; font-size: 26px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; color: var(--accent-gold); }
+        .locked-desc { color: var(--dim); font-size: 15px; max-width: 500px; margin-bottom: 28px; line-height: 1.6; }
+
+        /* Premium Scraped Data Container */
+        .vault-container {
+            flex: 1; min-height: 440px;
+            display: flex; flex-direction: column;
+            background: #0D111A; border: 1px solid var(--card-border); border-radius: 24px;
+            overflow: hidden;
+        }
+        .table-scroll { 
+            flex: 1; 
+            overflow: auto;
+            background: #0B0E15;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        th { text-align: left; padding: 18px 24px; font-size: 12px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; background: #121724; z-index: 10; letter-spacing: 0.5px; }
+        td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); color: #E2E8F0; font-weight: 500; white-space: nowrap; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* Premium Custom Scrollbars */
+        .table-scroll::-webkit-scrollbar, .content::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        .table-scroll::-webkit-scrollbar-track, .content::-webkit-scrollbar-track {
+            background: #0A0D14;
+        }
+        .table-scroll::-webkit-scrollbar-thumb, .content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border: 2px solid #0A0D14;
+        }
+        .table-scroll::-webkit-scrollbar-thumb:hover, .content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* History items list */
+        .history-list { display: flex; flex-direction: column; gap: 16px; }
+        .history-item { background: var(--card); border: 1px solid var(--card-border); padding: 24px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .hist-info h4 { font-family: 'Outfit'; font-size: 18px; margin-bottom: 4px; color: var(--white); }
+        .hist-info p { font-size: 12px; color: var(--dim); }
+        
+        .badge { padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; border: 1px solid transparent; }
+        .badge-gold { background: rgba(245, 199, 84, 0.1); color: var(--accent-gold); border-color: rgba(245, 199, 84, 0.2); }
+        .badge-free { background: rgba(255,255,255,0.05); color: var(--dim); border-color: var(--card-border); }
+
+        /* Interactive Buttons */
+        .btn { padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: inline-flex; align-items: center; gap: 10px; justify-content: center; text-transform: uppercase; letter-spacing: 0.5px; font-size: 13px; }
+        .btn-gold { background: var(--accent-gold); color: #000; box-shadow: 0 4px 15px rgba(245, 199, 84, 0.15); }
+        .btn-gold:hover { background: #D9B143; transform: translateY(-2px); }
+        .btn-blue { background: var(--accent-blue); color: #fff; box-shadow: 0 4px 15px rgba(79, 142, 247, 0.2); }
+        .btn-blue:hover { background: #3572D4; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--white); }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+
+        /* Premium Notifications / Toast Messages */
+        .success-toast { 
+            display: none; 
+            background: rgba(16, 185, 129, 0.08); 
+            border: 1px solid rgba(16, 185, 129, 0.25); 
+            color: var(--green); 
+            padding: 20px 24px; 
+            border-radius: 16px; 
+            font-weight: 700; 
+            margin-bottom: 24px; 
+            font-size: 15px;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.05);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .progress-box { display: none; margin-top: 28px; }
+        .bar-wrap { height: 8px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin: 14px 0; border: 1px solid rgba(255,255,255,0.02); }
+        .bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), #818CF8); width: 0%; transition: 0.4s; }
+
+        /* Fields & Grid Layouts */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+        .field { display: flex; flex-direction: column; gap: 10px; }
+        .field label { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+        .field-limit-info { font-size: 12px; color: var(--accent-gold); margin-top: 4px; font-weight: 600; }
+        
+        input, select { background: #0A0D14; border: 1px solid var(--card-border); color: #fff; padding: 16px; border-radius: 12px; outline: none; transition: 0.3s; font-size: 15px; }
+        input:focus, select:focus { border-color: var(--accent-blue); background: #0E121C; }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; padding: 24px; gap: 20px; }
+            .content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar navigation -->
+    <div class="sidebar">
+        <div class="logo">⚡ GOLDMINE<span>.</span></div>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="showTab('scraper')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                Lead Scraper
+            </div>
+            <div class="nav-item" onclick="showTab('results')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 8h10M7 12h10M7 16h10"/></svg>
+                Scraped Data
+            </div>
+            <div class="nav-item" onclick="showTab('history')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                History
+            </div>
+            <div class="nav-item" onclick="showTab('email')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                Enrichment
+            </div>
+        </div>
+        
+        <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--card-border);">
+            <div class="nav-item" style="color: var(--red);" onclick="window.location.href='/api/logout'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                Logout Account
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main">
+        <header>
+            <h2 id="header-title">Lead Scraper</h2>
+            <div class="user-info">
+                <div class="tier-tag" id="tier-display">FREE GUEST</div>
+                <div style="font-weight: 700; font-size: 11px; color: var(--dim);" id="username-display">Guest Mode</div>
+            </div>
+        </header>
+
+        <!-- SCRAPER TAB -->
+        <div class="content" id="scraper-tab">
+            <div class="success-toast" id="scraper-success">🎉 MINING COMPLETE — Leads stored in your scraped data.</div>
+            <div class="card">
+                <div class="grid">
+                    <div class="field"><label>Niche</label><input type="text" id="niche" placeholder="e.g. Roofers"></div>
+                    <div class="field"><label>Location</label><input type="text" id="location" placeholder="e.g. Dubai"></div>
+                    
+                    <div class="field">
+                        <label>Limit</label>
+                        <input type="number" id="count" value="20" min="1" max="500">
+                        <div class="field-limit-info" id="limit-hint">Guest limit: Max 20 / run</div>
+                    </div>
+                    
+                    <div class="field"><label>Filter</label><select id="filter"><option value="without" selected>MUST NOT HAVE WEBSITE</option><option value="with">MUST HAVE WEBSITE</option><option value="all">ANY RESULT</option></select></div>
+                </div>
+                
+                <div class="progress-box" id="scraper-progress">
+                    <div style="display:flex; justify-content:space-between; font-size: 12px; font-weight: 800; color: var(--accent-blue);"><span id="prog-msg">Mining...</span><span id="prog-pct">0%</span></div>
+                    <div class="bar-wrap"><div class="bar" id="prog-bar"></div></div>
+                </div>
+                
+                <div style="margin-top: 32px; display: flex; gap: 16px;">
+                    <button class="btn btn-blue" id="btn-scrape" onclick="startScrape()">Start Mining Leads</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS TAB (VAULT) -->
+        <div class="content" id="results-tab" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <h3 style="font-family:'Outfit'; text-transform:uppercase; letter-spacing:1px; font-size:18px;">Scraped Data</h3>
+                <div style="display:flex; gap:12px;">
+                    <button class="btn btn-outline" onclick="downloadCurrent()">Download CSV</button>
+                    <button class="btn btn-gold" id="enrich-shortcut-btn" onclick="showTab('email')">Enrich Emails</button>
+                </div>
+            </div>
+            
+            <div class="vault-container">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Quality</th>
+                                <th>Business Name</th>
+                                <th>Phone</th>
+                                <th>Website</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Rating</th>
+                                <th>Reviews</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <tr><td colspan="8" style="text-align:center; padding: 100px; color: var(--dim);">VAULT EMPTY</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="content" id="history-tab" style="display:none; position: relative;">
+            
+            <!-- Guest Locked Screen -->
+            <div class="locked-overlay" id="history-lock" style="display:none;">
+                <div class="locked-title">🔒 Scrape History Locked</div>
+                <div class="locked-desc">Storing previous scrape files is reserved for premium accounts. Download your current scrape as a CSV or upgrade your account to unlock.</div>
+                <a href="https://wa.me/923330282889?text=Hello,%20I%20want%20to%20upgrade%20to%20Premium%20Plan%20to%20unlock%20History%20log." target="_blank" class="btn btn-gold">Upgrade on WhatsApp</a>
+            </div>
+
+            <h3 style="font-family:'Outfit'; margin-bottom: 24px;">Previous Scrapes</h3>
+            <div class="history-list" id="history-list">
+                <!-- Items dynamically loaded -->
+            </div>
+        </div>
+
+        <!-- EMAIL TAB -->
+        <div class="content" id="email-tab" style="display:none; position: relative;">
+            
+            <!-- Guest Locked Screen -->
+            <div class="locked-overlay" id="email-lock" style="display:none;">
+                <div class="locked-title">🔒 Email Extraction Locked</div>
+                <div class="locked-desc">Crawl domains and find hidden verified emails automatically. Upgrade to a premium plan via WhatsApp to unlock the enrichment engine.</div>
+                <a href="https://wa.me/923330282889?text=Hello,%20I%20want%20to%20upgrade%20to%20Premium%20Plan%20to%20unlock%20Email%20Enrichment." target="_blank" class="btn btn-gold">Upgrade on WhatsApp</a>
+            </div>
+
+            <div class="success-toast" id="email-success">🎉 ENRICHMENT COMPLETE.</div>
+            <div class="card">
+                <h3 style="font-family:'Outfit';">Contact Enrichment Engine</h3>
+                <p style="color:var(--dim); margin: 12px 0 32px; font-size: 14px;">Visits each lead's domain to extract verified email addresses.</p>
+                
+                <div class="progress-box" id="email-progress" style="display:block; opacity:0.1;">
+                    <div style="display:flex; justify-content:space-between; font-size: 12px; font-weight: 800; color: var(--accent-blue);"><span id="email-msg">Ready...</span><span id="email-pct">0%</span></div>
+                    <div class="bar-wrap"><div class="bar" id="email-bar"></div></div>
+                    <div id="email-count" style="font-size: 12px; color: var(--green); font-weight: 800; margin-top: 12px;">0 EMAILS FOUND</div>
+                </div>
+                
+                <div style="margin-top: 40px; display: flex; gap: 16px;">
+                    <button class="btn btn-gold" id="btn-enrich" onclick="startEnrichment()">Start Extraction</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Silent API base URL routing (relative on local app, fallback to 127.0.0.1:5000 on static hosting)
+        const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : 'http://127.0.0.1:5000';
+
+        function getApiUrl(endpoint) {
+            if (API_BASE && !endpoint.startsWith('http')) {
+                return API_BASE.replace(/\/$/, '') + endpoint;
+            }
+            return endpoint;
+        }
+
+        let userTier = "Free";
+        let maxLimit = 20;
+
+        function showTab(id) {
+            document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(id + '-tab').style.display = 'flex';
+            
+            // Check locks
+            if (userTier === "Free") {
+                if (id === 'history') {
+                    document.getElementById('history-lock').style.display = 'flex';
+                } else if (id === 'email') {
+                    document.getElementById('email-lock').style.display = 'flex';
+                }
+            } else {
+                document.getElementById('history-lock').style.display = 'none';
+                document.getElementById('email-lock').style.display = 'none';
+            }
+
+            const navBtn = document.querySelector(`[onclick="showTab('${id}')"]`);
+            if (navBtn) navBtn.classList.add('active');
+            
+            // Change title in header depending on selected tab
+            let tabName = navBtn ? navBtn.textContent.trim() : "Dashboard";
+            if (tabName === "Scraped Data") {
+                document.getElementById('header-title').textContent = "Scraped Data";
+            } else {
+                document.getElementById('header-title').textContent = tabName;
+            }
+            
+            if (id === 'history' && userTier !== "Free") loadHistory();
+        }
+
+        async function startScrape() {
+            const btn = document.getElementById('btn-scrape');
+            const countInput = document.getElementById('count');
+            let countVal = parseInt(countInput.value) || 20;
+            
+            // Front-end enforcement of guest limit
+            if (userTier === "Free" && countVal > maxLimit) {
+                alert(`Guest accounts can scrape a maximum of ${maxLimit} leads per run. Daily limits apply.`);
+                countInput.value = maxLimit;
+                countVal = maxLimit;
+            }
+
+            btn.disabled = true; 
+            btn.textContent = "Scraping...";
+            document.getElementById('scraper-progress').style.display = 'block';
+            document.getElementById('scraper-success').style.display = 'none';
+
+            try {
+                const response = await fetch(getApiUrl('/api/scrape'), {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        niche: document.getElementById('niche').value,
+                        location: document.getElementById('location').value,
+                        count: countVal,
+                        filter: document.getElementById('filter').value
+                    })
+                });
+                
+                if (!response.ok) {
+                    const payload = await response.json().catch(() => ({error: 'Could not start scrape'}));
+                    btn.disabled = false; 
+                    btn.textContent = "Start Mining Leads";
+                    document.getElementById('prog-msg').textContent = payload.error || 'Could not start scrape';
+                    return;
+                }
+
+                const es = new EventSource(getApiUrl('/api/scrape/stream'));
+                es.onmessage = (e) => {
+                    const d = JSON.parse(e.data);
+                    if (d.t === 'progress') {
+                        document.getElementById('prog-bar').style.width = d.pct + '%';
+                        document.getElementById('prog-pct').textContent = d.pct + '%';
+                        if (d.stage === 'collect') {
+                            document.getElementById('prog-msg').textContent = `Collecting URLs: ${d.name}`;
+                        } else if (d.stage === 'checking') {
+                            document.getElementById('prog-msg').textContent = `Checked ${d.checked}/${d.raw_total} | Saved ${d.current}/${d.total}`;
+                        } else {
+                            document.getElementById('prog-msg').textContent = `Saved: ${d.name}`;
+                        }
+                    } else if (d.t === 'log') {
+                        document.getElementById('prog-msg').textContent = d.msg;
+                    } else if (d.t === 'done') {
+                        es.close();
+                        btn.disabled = false; 
+                        btn.textContent = "Start Mining Leads";
+                        document.getElementById('scraper-success').style.display = 'block';
+                        loadResults();
+                        updateSession(); // refresh guest quotas
+                    } else if (d.t === 'error') {
+                        es.close();
+                        btn.disabled = false; 
+                        btn.textContent = "Start Mining Leads";
+                        document.getElementById('prog-msg').textContent = d.msg || 'Scrape failed';
+                    }
+                };
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = "Start Mining Leads";
+                document.getElementById('prog-msg').textContent = "Server Connection Error. Check local backend.";
+            }
+        }
+
+        async function startEnrichment() {
+            if (userTier === "Free") {
+                alert("Email Extraction is a premium feature. Please upgrade.");
+                return;
+            }
+            const btn = document.getElementById('btn-enrich');
+            btn.disabled = true; btn.textContent = "Extracting...";
+            document.getElementById('email-progress').style.opacity = '1';
+            document.getElementById('email-success').style.display = 'none';
+
+            fetch(getApiUrl('/api/emails/find'), {method: 'POST'});
+            const es = new EventSource(getApiUrl('/api/emails/stream'));
+            es.onmessage = (e) => {
+                const d = JSON.parse(e.data);
+                if (d.t === 'checking') document.getElementById('email-msg').textContent = `Checking domain: ${d.name}`;
+                else if (d.t === 'update') {
+                    document.getElementById('email-bar').style.width = d.pct + '%';
+                    document.getElementById('email-pct').textContent = d.pct + '%';
+                    document.getElementById('email-count').textContent = `${d.found} EMAILS EXTRACTED`;
+                } else if (d.t === 'done') {
+                    es.close();
+                    btn.disabled = false; btn.textContent = "Extraction Completed";
+                    document.getElementById('email-success').style.display = 'block';
+                    loadResults();
+                } else if (d.t === 'error') {
+                    es.close();
+                    btn.disabled = false; btn.textContent = "Start Extraction";
+                    document.getElementById('email-msg').textContent = d.msg || 'Extraction failed';
+                }
+            };
+        }
+
+        async function loadResults() {
+            const res = await fetch(getApiUrl('/api/results'));
+            const data = await res.json();
+            const body = document.getElementById('results-body');
+            
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 100px; color: var(--dim);">SCRAPED DATA EMPTY</td></tr>`;
+                return;
+            }
+            
+            body.innerHTML = data.map(r => {
+                let score = (r.Phone?30:0) + (r.Website?30:0) + (r.Email?40:0);
+                let badge = score >= 90 ? 'gold' : score >= 60 ? 'silver' : 'bronze';
+                let websiteCell = r.Website ? `<a href="${r.Website}" target="_blank" style="color:var(--accent-blue); text-decoration:none">${r.Website}</a>` : '—';
+                let emailCell = r.Email ? `<span style="color:var(--green); font-weight:700;">${r.Email}</span>` : (userTier === 'Free' && r.Website ? '🔒 Locked' : '—');
+                
+                return `
+                    <tr>
+                        <td><span class="badge ${userTier === 'Free' ? 'badge-free' : 'badge-gold'}">${badge.toUpperCase()}</span></td>
+                        <td><strong style="color:#fff">${r.Name}</strong></td>
+                        <td style="color:#aaa">${r.Phone || '—'}</td>
+                        <td>${websiteCell}</td>
+                        <td>${emailCell}</td>
+                        <td style="color:#888; font-size:11px;">${r.Address || '—'}</td>
+                        <td style="color:var(--accent-gold)">★ ${r.Rating || '0'}</td>
+                        <td style="color:#888">${r.Reviews || '0'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadHistory() {
+            const res = await fetch(getApiUrl('/api/history'));
+            const data = await res.json();
+            const list = document.getElementById('history-list');
+            if (!data.length) {
+                list.innerHTML = `<div style="text-align:center; padding: 60px; color:var(--dim);">No history found for this account.</div>`;
+                return;
+            }
+            list.innerHTML = data.map(h => `
+                <div class="history-item">
+                    <div class="hist-info">
+                        <h4>${h.name}</h4>
+                        <p>${h.date}  •  ${h.count} leads extracted</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.href='${getApiUrl('/api/download/history/' + h.id)}'">Download CSV</button>
+                </div>
+            `).join('');
+        }
+
+        function downloadCurrent() { 
+            window.location.href = getApiUrl('/api/download/csv'); 
+        }
+
+        async function updateSession() {
+            try {
+                const res = await fetch(getApiUrl('/api/session'));
+                const data = await res.json();
+                
+                userTier = data.tier;
+                
+                // Set User Display details
+                const tierDisplay = document.getElementById('tier-display');
+                const userDisplay = document.getElementById('username-display');
+                const countInput = document.getElementById('count');
+                const limitHint = document.getElementById('limit-hint');
+                
+                if (userTier === "Free") {
+                    tierDisplay.textContent = "FREE GUEST";
+                    tierDisplay.style.background = "rgba(255,255,255,0.1)";
+                    tierDisplay.style.color = "var(--dim)";
+                    userDisplay.textContent = `Guest Mode (Daily Quota: ${data.remaining_leads}/20 remaining)`;
+                    maxLimit = data.remaining_leads;
+                    countInput.value = Math.min(20, maxLimit);
+                    limitHint.textContent = `Guest quota: Max ${maxLimit} remaining today`;
+                    
+                    // Hide email enrichment shortcut button
+                    document.getElementById('enrich-shortcut-btn').style.display = "none";
+                } else {
+                    tierDisplay.textContent = userTier.toUpperCase();
+                    tierDisplay.style.background = "var(--accent-gold)";
+                    tierDisplay.style.color = "#000";
+                    
+                    let expiryStr = data.expiry !== "None" ? ` (Expires: ${data.expiry})` : "";
+                    userDisplay.textContent = `${data.username}${expiryStr}`;
+                    maxLimit = 500;
+                    countInput.value = 50;
+                    limitHint.textContent = "Premium tier: Max 500 per search";
+                    
+                    document.getElementById('enrich-shortcut-btn').style.display = "inline-flex";
+                }
+                
+                loadResults();
+            } catch (err) {
+                console.error("Session update failed. Local server offline or CORS issue.", err);
+            }
+        }
+
+        window.onload = async () => {
+            await updateSession();
+            showTab('scraper');
+        };
+    </script>
+</body>
+</html>

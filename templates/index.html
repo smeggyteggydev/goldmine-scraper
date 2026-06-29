@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goldmine Lead Scraper — Premium Business & Email Scraper</title>
+    
+    <!-- SEO Optimization -->
+    <meta name="description" content="Unlock unlimited business leads with Goldmine, the top ranked website scraper, business scraper, and email scraper. Get niche scraper free and earn leads to scale your business. Optimize web development scraper actions today.">
+    <meta name="keywords" content="scraper, lead scraper, earn leads, business scraper, email scraper, niche scraper free, website scraper, top ranked website scraper, web development scraper">
+    <meta name="author" content="Goldmine SaaS">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(17, 24, 39, 0.45);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --accent-gold: #F5C754;
+            --accent-blue: #6366F1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --success: #10B981;
+            --red: #EF4444;
+            --font-outfit: 'Outfit', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-inter);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(245, 199, 84, 0.1) 0%, transparent 40%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Ambient grid pattern overlay */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Floating Nav Bar */
+        nav {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            height: 70px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-family: var(--font-outfit);
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 40%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            color: var(--accent-blue);
+            -webkit-text-fill-color: var(--accent-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .btn-login {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #fff;
+            color: var(--bg-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 220px 6% 120px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .seo-tag {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(245, 199, 84, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #A5B4FC;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 32px;
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.3); }
+        }
+
+        h1 {
+            font-family: var(--font-outfit);
+            font-size: 58px;
+            font-weight: 900;
+            letter-spacing: -2.5px;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #fff 0%, #D1D5DB 40%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .subtitle {
+            font-size: 19px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 48px;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: slideUpDelay 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpDelay {
+            from { transform: translateY(30px); opacity: 0; }
+            50% { opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            animation: slideUpDelay2 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpDelay2 {
+            from { transform: translateY(30px); opacity: 0; }
+            66% { opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: var(--bg-color);
+            padding: 18px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+            background: var(--accent-gold);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 18px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 6%;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-family: var(--font-outfit);
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            letter-spacing: -1.5px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 17px;
+            margin-bottom: 64px;
+        }
+
+        /* Strictly Equal Height 3-Column SaaS Grid */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            align-items: stretch;
+        }
+
+        .plan-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 48px 36px;
+            text-align: left;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(12px);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 30px 60px rgba(99, 102, 241, 0.1);
+        }
+
+        .plan-card.featured {
+            border-color: rgba(245, 199, 84, 0.4);
+            background: linear-gradient(180deg, rgba(20, 26, 40, 0.7) 0%, rgba(10, 13, 20, 0.95) 100%);
+        }
+
+        .plan-card.featured:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 30px 60px rgba(245, 199, 84, 0.08);
+        }
+
+        .plan-card.featured::before {
+            content: "RECOMMENDED";
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--accent-gold);
+            color: #000;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+        }
+
+        .plan-name {
+            font-family: var(--font-outfit);
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .plan-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 36px;
+            min-height: 48px;
+            line-height: 1.6;
+        }
+
+        .plan-price {
+            font-family: var(--font-outfit);
+            font-size: 52px;
+            font-weight: 900;
+            margin-bottom: 36px;
+            display: flex;
+            align-items: baseline;
+            letter-spacing: -2px;
+        }
+
+        .plan-price span {
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 6px;
+            letter-spacing: 0;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .plan-features li {
+            font-size: 15px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #E5E7EB;
+        }
+
+        .plan-features svg {
+            color: var(--success);
+            flex-shrink: 0;
+        }
+
+        .plan-features li.locked {
+            color: var(--text-muted);
+        }
+
+        .plan-features li.locked svg {
+            color: var(--red);
+        }
+
+        .btn-plan {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .btn-plan-outline {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        .btn-plan-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-plan-blue {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-plan-blue:hover {
+            background: #4F46E5;
+            transform: translateY(-2px);
+        }
+
+        .btn-plan-gold {
+            background: var(--accent-gold);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(245, 199, 84, 0.2);
+        }
+
+        .btn-plan-gold:hover {
+            background: #D9B143;
+            transform: translateY(-2px);
+        }
+
+        /* Login Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #0F172A;
+            border: 1px solid var(--card-border);
+            width: 90%;
+            max-width: 420px;
+            border-radius: 24px;
+            padding: 44px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 24px;
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-box h3 {
+            font-family: var(--font-outfit);
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .modal-box p {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 18px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-blue);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #fff;
+            color: var(--bg-color);
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .error-msg {
+            color: var(--red);
+            font-size: 13px;
+            margin-top: 16px;
+            text-align: center;
+            display: none;
+            font-weight: 600;
+        }
+
+        /* SEO Footer */
+        .seo-footer {
+            padding: 80px 8%;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .seo-footer h4 {
+            font-family: var(--font-outfit);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .seo-footer p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+        }
+
+        footer a {
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        footer a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* Responsive Layout Grid */
+        @media (max-width: 992px) {
+            .plans-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            h1 {
+                font-size: 46px;
+                letter-spacing: -1.5px;
+            }
+            .hero {
+                padding: 180px 6% 80px;
+            }
+            nav {
+                width: 95%;
+                padding: 0 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <!-- Nav Bar -->
+    <nav>
+        <div class="logo">⚡ GOLDMINE<span>.</span></div>
+        <div class="nav-links">
+            <a href="#plans" class="nav-link">Pricing Plans</a>
+            <a href="https://wa.me/923330282889" target="_blank" class="nav-link">Contact</a>
+            <button class="btn-login" onclick="toggleModal(true)">Login</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="seo-tag">Premium Email & Business Scraper</div>
+        <h1>Get Unlimited Leads & Earn Money</h1>
+        <p class="subtitle">
+            Goldmine builds the best tools for web developers data scraping, business owners, and agencies. Get unlimited business and get unlimited leads. Saving the scraped data in live time.
+        </p>
+        
+        <div class="hero-actions">
+            <button class="btn-primary" onclick="tryGuestMode()">Try Free Guest Mode</button>
+            <a href="#plans" class="btn-secondary">View Pricing</a>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="plans">
+        <h2 class="section-title">Flexible Pricing Plans</h2>
+        <p class="section-desc">Get access to high-accuracy niche scraper features, verified email finders, and unlimited exports.</p>
+        
+        <div class="plans-grid">
+            
+            <!-- Free Plan -->
+            <div class="plan-card">
+                <div>
+                    <h3 class="plan-name">Free Guest Tier</h3>
+                    <p class="plan-desc">Perfect for testing the tool features with zero registration.</p>
+                    <div class="plan-price">$0<span>/ forever</span></div>
+                    
+                    <ul class="plan-features">
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            20 Scraped Leads / Day
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Google Maps Places Data
+                        </li>
+                        <li class="locked">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Contact Email Extraction Locked
+                        </li>
+                        <li class="locked">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Export History Log Locked
+                        </li>
+                    </ul>
+                </div>
+                <button class="btn-plan btn-plan-outline" onclick="tryGuestMode()">Start Scraping Free</button>
+            </div>
+
+            <!-- Monthly Plan -->
+            <div class="plan-card featured">
+                <div>
+                    <h3 class="plan-name">Monthly Premium</h3>
+                    <p class="plan-desc">For serious agencies and local service providers seeking cold outreach leads.</p>
+                    <div class="plan-price">$15<span>/ month</span></div>
+                    
+                    <ul class="plan-features">
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Unlimited Scraped Leads / Day
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Contact Email Extraction Unlocked
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Export History Log Unlocked
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            24/7 Dedicated WhatsApp Support
+                        </li>
+                    </ul>
+                </div>
+                <a href="https://wa.me/923330282889?text=Hello,%20I%20want%20to%20purchase%20the%20Monthly%20Premium%20Plan%20for%20Goldmine%20Scraper." target="_blank" class="btn-plan btn-plan-blue">Get Monthly via WhatsApp</a>
+            </div>
+
+            <!-- Yearly Plan -->
+            <div class="plan-card">
+                <div>
+                    <h3 class="plan-name">Yearly Unlimited</h3>
+                    <p class="plan-desc">The ultimate corporate package for complete market intelligence campaigns.</p>
+                    <div class="plan-price">$120<span>/ year</span></div>
+                    
+                    <ul class="plan-features">
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Unlimited Scraped Leads / Day
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Contact Email Extraction Unlocked
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Export History Log Unlocked
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Priority 1-on-1 Dedicated Support
+                        </li>
+                        <li>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Save over 30% compared to monthly
+                        </li>
+                    </ul>
+                </div>
+                <a href="https://wa.me/923330282889?text=Hello,%20I%20want%20to%20purchase%20the%20Yearly%20Unlimited%20Plan%20for%20Goldmine%20Scraper." target="_blank" class="btn-plan btn-plan-gold">Get Yearly via WhatsApp</a>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal" onclick="if(event.target === this) toggleModal(false)">
+        <div class="modal-box">
+            <button class="modal-close" onclick="toggleModal(false)">×</button>
+            <h3>Account Login</h3>
+            <p>Access your Monthly/Yearly premium dashboard.</p>
+            
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            
+            <button class="btn-submit" onclick="submitLogin()">Verify & Enter</button>
+            <div class="error-msg" id="error-msg">Invalid credentials.</div>
+        </div>
+    </div>
+
+    <!-- SEO Information Footer Section -->
+    <section class="seo-footer">
+        <h4>Goldmine — Business Scraper & Email Scraper</h4>
+        <p>
+            Goldmine is a top ranked website scraper, business scraper, and email scraper for web developers, business owners, and agencies. Get niche scraper free and earn leads with verified cold email data.
+        </p>
+    </section>
+
+    <footer>
+        © 2026 GOLDMINE LEAD SCRAPER. ALL RIGHTS RESERVED. FOR UPGRADES CONTACT WHATSAPP AT <a href="tel:+923330282889">+92 3330282889</a>
+    </footer>
+
+    <script>
+        // Silent API base URL routing (relative on local app, fallback to 127.0.0.1:5000 on static hosting)
+        const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : 'http://127.0.0.1:5000';
+
+        function getApiUrl(endpoint) {
+            if (API_BASE && !endpoint.startsWith('http')) {
+                return API_BASE.replace(/\/$/, '') + endpoint;
+            }
+            return endpoint;
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('login-modal');
+            if (show) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+                document.getElementById('error-msg').style.display = 'none';
+            }
+        }
+
+        async function submitLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const error = document.getElementById('error-msg');
+            
+            if (!user || !pass) {
+                error.textContent = "Please fill in all fields.";
+                error.style.display = "block";
+                return;
+            }
+
+            error.style.display = "none";
+            
+            try {
+                const res = await fetch(getApiUrl('/api/login'), {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                const data = await res.json();
+                
+                if (data.valid) {
+                    const isNetlify = window.location.hostname.includes('netlify') || !window.location.port;
+                    window.location.href = isNetlify ? '/dashboard.html' : (data.redirect || '/dashboard');
+                } else {
+                    error.textContent = data.error || "Invalid username or password.";
+                    error.style.display = "block";
+                }
+            } catch (e) {
+                error.textContent = "Connection error. Make sure the backend server is running.";
+                error.style.display = "block";
+            }
+        }
+
+        async function tryGuestMode() {
+            try {
+                const res = await fetch(getApiUrl('/api/guest'), { method: 'POST' });
+                const data = await res.json();
+                if (data.valid) {
+                    const isNetlify = window.location.hostname.includes('netlify') || !window.location.port;
+                    window.location.href = isNetlify ? '/dashboard.html' : (data.redirect || '/dashboard');
+                }
+            } catch (e) {
+                alert("Failed to start Guest Mode. Make sure the backend server is running.");
+            }
+        }
+    </script>
+</body>
+</html>
