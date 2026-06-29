@@ -394,7 +394,11 @@
                     const payload = await response.json().catch(() => ({error: 'Could not start scrape'}));
                     btn.disabled = false; 
                     btn.textContent = "Start Mining Leads";
-                    document.getElementById('prog-msg').textContent = payload.error || 'Could not start scrape';
+                    if (payload.error === "Busy") {
+                        document.getElementById('prog-msg').innerHTML = `Server is busy. <a href="#" onclick="forceResetScraper(); return false;" style="color: var(--red); text-decoration: underline; font-weight: bold;">Click here to Force Reset</a>`;
+                    } else {
+                        document.getElementById('prog-msg').textContent = payload.error || 'Could not start scrape';
+                    }
                     return;
                 }
 
@@ -572,6 +576,25 @@
             }
             const isNetlify = window.location.hostname.includes('netlify') || !window.location.port;
             window.location.href = isNetlify ? '/index.html' : '/';
+        }
+
+        async function forceResetScraper() {
+            const msgEl = document.getElementById('prog-msg');
+            msgEl.textContent = "Resetting server scraper status...";
+            try {
+                const res = await fetch(getApiUrl('/api/debug/reset'), { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.status) {
+                    msgEl.textContent = "Server reset successfully! You can now start a new scrape.";
+                } else {
+                    msgEl.textContent = "Failed to reset server status.";
+                }
+            } catch (e) {
+                msgEl.textContent = "Connection error while trying to reset server.";
+            }
         }
 
         window.onload = async () => {

@@ -508,6 +508,15 @@ def get_debug_screenshot(filename):
         return "Not Found", 404
     return send_file(path, mimetype="image/png")
 
+@app.route("/api/debug/reset", methods=["GET", "POST"])
+def force_reset_scraper():
+    job["scrape_running"] = False
+    job["email_running"] = False
+    job["scrape_thread"] = None
+    _clear_q(job["scrape_queue"])
+    _clear_q(job["email_queue"])
+    return jsonify({"status": "Reset successful", "scrape_running": False})
+
 # ── Main Entry ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
